@@ -39,7 +39,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
 
   bidserviceapi:
-    image: fawad23/bid-service:1.0.0
+    image: fawad23/bid-service:3.0.5
     container_name: bid-service
     depends_on:
       - rabbitmq
@@ -54,7 +54,7 @@ services:
       - backend
 
   auctionserviceapi:
-    image: abduawaiz/auction-service:5.0.0
+    image: abduawaiz/auction-service:6.0.1
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
@@ -75,7 +75,7 @@ services:
       - backend
 
   storage-service:
-    image: fawad23/storage-service:2.1.3
+    image: fawad23/storage-service:2.3.5
     container_name: storage-service
     environment:
       - RABBITMQ_HOST=rabbitmq

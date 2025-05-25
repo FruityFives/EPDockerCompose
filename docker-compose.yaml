@@ -54,7 +54,7 @@ services:
       - backend
 
   auctionserviceapi:
-    image: abduawaiz/auction-service:6.0.1
+    image: abduawaiz/auction-service:6.0.6
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
@@ -91,9 +91,11 @@ services:
       - mongo
     networks:
       - backend
+    volumes:
+      - condition-reports:/app/data/condition-reports
 
   valuation-service:
-    image: sakariye1/valuation-service:2.1.1
+    image: sakariye1/valuation-service:3.0.1
     container_name: valuation-service
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -107,9 +109,12 @@ services:
       - mongo
     networks:
       - backend
+    volumes:
+      - condition-reports:/app/data/condition-reports
 
 volumes:
   mongo-data:
+  condition-reports:
 
 networks:
   backend:

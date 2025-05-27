@@ -17,6 +17,7 @@ services:
       - mongo-data:/data/db
     networks:
       - backend
+    restart: always
 
   loki:
     image: grafana/loki:latest
@@ -95,7 +96,7 @@ services:
       - condition-reports:/app/data/condition-reports
 
   valuation-service:
-    image: sakariye1/valuation-service:4.2.2
+    image: sakariye1/valuation-service:4.3.2
     container_name: valuation-service
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -113,20 +114,23 @@ services:
       - condition-reports:/app/data/condition-reports
 
   user-service:
-    image: abduawaiz/user-service:1.0.0
+    image: abduawaiz/user-service:2.0.0
     container_name: user-service
     platform: linux/amd64
     ports:
       - "6003:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MONGODB_URI=mongodb://mongo:27017
+        - ASPNETCORE_ENVIRONMENT=Development
+        - MONGODB_URI=mongodb://mongo:27017
+        - MongoDb__ConnectionString=mongodb://mongo:27017
+        - MongoDb__Database=UserServiceDb
+        - MongoDb__Collection=Users
     depends_on:
       - mongo
     restart: always
     networks:
       - backend
-
+    
   auth-service:
     image: abduawaiz/auth-service:1.0.0
     container_name: auth-service

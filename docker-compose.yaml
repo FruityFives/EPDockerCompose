@@ -39,7 +39,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
 
   bidserviceapi:
-    image: fawad23/bid-service:4.0.0
+    image: fawad23/bid-service:5.0.1
     container_name: bid-service
     depends_on:
       - rabbitmq

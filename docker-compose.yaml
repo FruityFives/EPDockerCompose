@@ -54,7 +54,7 @@ services:
       - backend
 
   auctionserviceapi:
-    image: abduawaiz/auction-service:6.0.9
+    image: abduawaiz/auction-service:6.2.0
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq

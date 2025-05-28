@@ -54,7 +54,7 @@ services:
       - backend
 
   auctionserviceapi:
-    image: abduawaiz/auction-service:6.2.0
+    image: abduawaiz/auction-service:6.2.1
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
@@ -68,8 +68,7 @@ services:
       - AUCTION_DB_NAME=AuctionServiceDb
       - AUCTION_COLLECTION_NAME=AuctionCollection
       - CATALOG_COLLECTION_NAME=CatalogCollection
-      - STORAGE_SERVICE_BASE_URL=http://storage-service:5000
-
+      - STORAGE_SERVICE_BASE_URL=http://nginx/api/storage
     ports:
       - "5002:5002"
     restart: always

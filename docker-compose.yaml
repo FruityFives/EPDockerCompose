@@ -17,7 +17,6 @@ services:
       - mongo-data:/data/db
     networks:
       - backend
-    restart: always
 
   loki:
     image: grafana/loki:latest
@@ -46,20 +45,16 @@ services:
       - rabbitmq
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - ASPNETCORE_URLS=http://+:5003
       - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "5003:5003"
-    restart: always
+      - ASPNETCORE_URLS=http://+:5003
     networks:
       - backend
 
   auctionserviceapi:
-    image: abduawaiz/auction-service:6.0.9
+    image: abduawaiz/auction-service:6.3.6
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
-      - loki
       - mongo
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -69,14 +64,12 @@ services:
       - AUCTION_DB_NAME=AuctionServiceDb
       - AUCTION_COLLECTION_NAME=AuctionCollection
       - CATALOG_COLLECTION_NAME=CatalogCollection
-    ports:
-      - "5002:5002"
-    restart: always
+      - STORAGE_SERVICE_BASE_URL=http://storage-service:5000/api/storage
     networks:
       - backend
 
   storage-service:
-    image: fawad23/storage-service:2.4.8
+    image: fawad23/storage-service:2.8.0
     container_name: storage-service
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -85,8 +78,6 @@ services:
       - STORAGE_COLLECTION_NAME=StorageEffects
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
-    ports:
-      - "5001:5001"
     depends_on:
       - rabbitmq
       - mongo
@@ -96,15 +87,13 @@ services:
       - condition-reports:/app/data/condition-reports
 
   valuation-service:
-    image: sakariye1/valuation-service:4.3.2
+    image: sakariye1/valuation-service:4.6.5
     container_name: valuation-service
     environment:
       - RABBITMQ_HOST=rabbitmq
       - MongoDb__ConnectionString=mongodb://mongo:27017
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-    ports:
-      - "8080:8080"
     depends_on:
       - rabbitmq
       - mongo
@@ -117,28 +106,26 @@ services:
     image: abduawaiz/user-service:2.0.0
     container_name: user-service
     platform: linux/amd64
-    ports:
-      - "6003:8080"
     environment:
-        - ASPNETCORE_ENVIRONMENT=Development
-        - MONGODB_URI=mongodb://mongo:27017
-        - MongoDb__ConnectionString=mongodb://mongo:27017
-        - MongoDb__Database=UserServiceDb
-        - MongoDb__Collection=Users
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - MONGODB_URI=mongodb://mongo:27017
+      - MongoDb__ConnectionString=mongodb://mongo:27017
+      - MongoDb__Database=UserServiceDb
+      - MongoDb__Collection=Users
     depends_on:
       - mongo
     restart: always
     networks:
       - backend
-    
+
   auth-service:
-    image: abduawaiz/auth-service:1.0.0
+    image: abduawaiz/auth-service:4.0.0
     container_name: auth-service
     platform: linux/amd64
-    ports:
-      - "6001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
       - UserServiceUrl=http://user-service:8080
       - Secret=MinSuperHemmeligeNøgle1234567890123456!
       - Issuer=authServiceAPI
@@ -146,6 +133,23 @@ services:
     depends_on:
       - user-service
     restart: always
+    networks:
+      - backend
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - storage-service
+      - auctionserviceapi
+      - bidserviceapi
+      - valuation-service
+      - user-service
+      - auth-service
     networks:
       - backend
 

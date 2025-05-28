@@ -39,7 +39,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
 
   bidserviceapi:
-    image: fawad23/bid-service:3.0.5
+    image: fawad23/bid-service:5.0.1
     container_name: bid-service
     depends_on:
       - rabbitmq
@@ -54,7 +54,7 @@ services:
       - backend
 
   auctionserviceapi:
-    image: abduawaiz/auction-service:6.0.7
+    image: abduawaiz/auction-service:6.0.9
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
@@ -75,7 +75,7 @@ services:
       - backend
 
   storage-service:
-    image: fawad23/storage-service:2.4.7
+    image: fawad23/storage-service:2.4.8
     container_name: storage-service
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -95,7 +95,7 @@ services:
       - condition-reports:/app/data/condition-reports
 
   valuation-service:
-    image: sakariye1/valuation-service:3.0.1
+    image: sakariye1/valuation-service:4.3.2
     container_name: valuation-service
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -112,6 +112,42 @@ services:
     volumes:
       - condition-reports:/app/data/condition-reports
 
+  user-service:
+    image: abduawaiz/user-service:2.0.0
+    container_name: user-service
+    platform: linux/amd64
+    ports:
+      - "6003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - MONGODB_URI=mongodb://mongo:27017
+      - MongoDb__ConnectionString=mongodb://mongo:27017
+      - MongoDb__Database=UserServiceDb
+      - MongoDb__Collection=Users
+    depends_on:
+      - mongo
+    restart: always
+    networks:
+      - backend
+
+  auth-service:
+    image: abduawaiz/auth-service:3.0.0
+    container_name: auth-service
+    platform: linux/amd64
+    ports:
+      - "6001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - UserServiceUrl=http://user-service:8080
+      - Secret=MinSuperHemmeligeNøgle1234567890123456!
+      - Issuer=authServiceAPI
+      - Audience=authServiceAPI
+    depends_on:
+      - user-service
+    restart: always
+    networks:
+      - backend
+
   nginx:
     image: nginx
     container_name: nginx
@@ -124,9 +160,10 @@ services:
       - auctionserviceapi
       - bidserviceapi
       - valuation-service
+      - user-service
+      - auth-service
     networks:
       - backend
-
 
 volumes:
   mongo-data:

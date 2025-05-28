@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -45,11 +47,8 @@ services:
       - rabbitmq
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - ASPNETCORE_URLS=http://+:5003
       - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "5003:5003"
-    restart: always
+      - ASPNETCORE_URLS=http://+:5003
     networks:
       - backend
 
@@ -58,7 +57,6 @@ services:
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
-      - loki
       - mongo
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -68,11 +66,7 @@ services:
       - AUCTION_DB_NAME=AuctionServiceDb
       - AUCTION_COLLECTION_NAME=AuctionCollection
       - CATALOG_COLLECTION_NAME=CatalogCollection
-      - STORAGE_SERVICE_BASE_URL=http://nginx/api/storage
-
-    ports:
-      - "5002:5002"
-    restart: always
+      - STORAGE_SERVICE_BASE_URL=http://storage-service:5000
     networks:
       - backend
 
@@ -86,8 +80,6 @@ services:
       - STORAGE_COLLECTION_NAME=StorageEffects
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
-    ports:
-      - "5000:5000"
     depends_on:
       - rabbitmq
       - mongo
@@ -104,8 +96,6 @@ services:
       - MongoDb__ConnectionString=mongodb://mongo:27017
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-    ports:
-      - "8080:8080"
     depends_on:
       - rabbitmq
       - mongo
@@ -118,10 +108,9 @@ services:
     image: abduawaiz/user-service:2.0.0
     container_name: user-service
     platform: linux/amd64
-    ports:
-      - "6003:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
       - MONGODB_URI=mongodb://mongo:27017
       - MongoDb__ConnectionString=mongodb://mongo:27017
       - MongoDb__Database=UserServiceDb
@@ -136,10 +125,9 @@ services:
     image: abduawaiz/auth-service:3.0.0
     container_name: auth-service
     platform: linux/amd64
-    ports:
-      - "6001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
       - UserServiceUrl=http://user-service:8080
       - Secret=MinSuperHemmeligeNøgle1234567890123456!
       - Issuer=authServiceAPI

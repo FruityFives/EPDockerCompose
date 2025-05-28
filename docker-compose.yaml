@@ -53,7 +53,7 @@ services:
       - backend
 
   auctionserviceapi:
-    image: abduawaiz/auction-service:6.3.5
+    image: abduawaiz/auction-service:6.3.6
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
@@ -66,7 +66,7 @@ services:
       - AUCTION_DB_NAME=AuctionServiceDb
       - AUCTION_COLLECTION_NAME=AuctionCollection
       - CATALOG_COLLECTION_NAME=CatalogCollection
-      - STORAGE_SERVICE_BASE_URL=http://storage-service:5000
+      - STORAGE_SERVICE_BASE_URL=http://storage-service:5000/api/storage
     networks:
       - backend
 

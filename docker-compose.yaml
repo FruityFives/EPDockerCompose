@@ -68,9 +68,7 @@ services:
       - AUCTION_DB_NAME=AuctionServiceDb
       - AUCTION_COLLECTION_NAME=AuctionCollection
       - CATALOG_COLLECTION_NAME=CatalogCollection
-      - STORAGE_SERVICE_BASE_URL=http://storage-service:5000/api/storage
-      - UserServiceUrl=http://user-service:8080
-
+      - STORAGE_SERVICE_BASE_URL=http://storage-service:5000
 
     ports:
       - "5002:5002"

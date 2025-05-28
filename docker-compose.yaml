@@ -53,7 +53,7 @@ services:
       - backend
 
   auctionserviceapi:
-    image: abduawaiz/auction-service:6.2.5
+    image: abduawaiz/auction-service:6.3.5
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
@@ -71,7 +71,7 @@ services:
       - backend
 
   storage-service:
-    image: fawad23/storage-service:2.7.9
+    image: fawad23/storage-service:2.8.0
     container_name: storage-service
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -89,7 +89,7 @@ services:
       - condition-reports:/app/data/condition-reports
 
   valuation-service:
-    image: sakariye1/valuation-service:4.3.3
+    image: sakariye1/valuation-service:4.6.5
     container_name: valuation-service
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -122,7 +122,7 @@ services:
       - backend
 
   auth-service:
-    image: abduawaiz/auth-service:3.0.0
+    image: abduawaiz/auth-service:4.0.0
     container_name: auth-service
     platform: linux/amd64
     environment:

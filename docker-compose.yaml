@@ -54,7 +54,7 @@ services:
       - backend
 
   auctionserviceapi:
-    image: abduawaiz/auction-service:6.2.1
+    image: abduawaiz/auction-service:6.2.5
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
@@ -68,7 +68,7 @@ services:
       - AUCTION_DB_NAME=AuctionServiceDb
       - AUCTION_COLLECTION_NAME=AuctionCollection
       - CATALOG_COLLECTION_NAME=CatalogCollection
-      - STORAGE_SERVICE_BASE_URL=http://storage-service:5000
+      - STORAGE_SERVICE_BASE_URL=http://nginx/api/storage
 
     ports:
       - "5002:5002"
@@ -77,7 +77,7 @@ services:
       - backend
 
   storage-service:
-    image: fawad23/storage-service:2.4.8
+    image: fawad23/storage-service:2.7.9
     container_name: storage-service
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -97,7 +97,7 @@ services:
       - condition-reports:/app/data/condition-reports
 
   valuation-service:
-    image: sakariye1/valuation-service:4.3.2
+    image: sakariye1/valuation-service:4.3.3
     container_name: valuation-service
     environment:
       - RABBITMQ_HOST=rabbitmq

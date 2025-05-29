@@ -1,0 +1,203 @@
+﻿Brugervejledning til auktionssystem
+
+
+Base URL ved brug af virtuel maskine: http://74.234.28.11
+
+
+Note: 
+* Husk at alle endpoints i ValuationService (undtagen login og opret bruger) kræver gyldigt JWT-token. Brug "Bearer Token" i Postman under "Authorization".
+* Resten af systemet anvender ikke Authorization men rollefordelingen er stadig angivet
+* Tilgå Mongodb compass med følgende connectionstring: mongodb://74.234.28.11:27018
+
+
+
+
+---
+1. Opret brugere
+
+
+Før du kan gøre brug af systemet, skal du oprette brugere med de relevante roller.
+
+
+Noter: Der er oprettet brugere i databasen, hvis man vil springe over dette skridt
+
+
+1.1 Opret bruger med rollen "User"
+Endpoint: POST /api/users/create
+Body:
+{
+  "username": "Henrik123",
+  "emailAddress": "Henrik@hotmail.com",
+  "password": "Henrik123",
+  "role": "User"
+}
+
+
+1.2 Opret bruger med rollen "Admin"
+Endpoint: POST /api/users/create
+Body:
+{
+  "username": "Admin123",
+  "emailAddress": "Admin123@hotmail.com",
+  "password": "Admin123",
+  "role": "Admin"
+}
+
+
+1.3 Opret bruger med rollen "Expert"
+Endpoint: POST /api/users/create
+Body:
+{
+  "username": "Expert123",
+  "emailAddress": "Expert123@hotmail.com",
+  "password": "Expert123",
+  "role": "Expert"
+}
+
+
+---
+
+
+2. Login og token-håndtering
+
+
+
+
+2.1 Login
+Endpoint: POST /api/auth/login
+Body:
+{
+  "username": "",
+  "password": ""
+}
+Efter login returneres et JWT-token. Kopiér det og brug det som Bearer Token i efterfølgende kald.
+
+
+2.2 Valider token (valgfrit)
+Endpoint: GET /api/auth/validate-token
+Authorization: Bearer <dit_token> (uden “”)
+
+
+---
+
+
+3. Vurderingsflow (User & Expert)
+
+
+3.1 Opret en ValuationRequest (user rolle)
+Husk at bruge en bruger med rollen expert til denne del (se seeddata i db) 
+POST: /api/valuation/valuationrequest
+Authorization: Bearer <dit_token> (uden “”)
+
+{
+  "userId": "d25fc370-b59d-4e00-8bd5-2e705203f5b9",
+  "description": "Original Arne Jacobsen 8’er stol i god stand",
+  "pictures": ["https://example.com/stol.jpg"]
+}
+
+
+
+
+3.2 Opret EffectAssessment (expert role)
+Vigtigt: Udskift “valuationrequestId” med den id fra request som lige er blevet oprettet
+Endpoint: POST /api/valuation/addeffectassessment
+Authorization: Bearer <dit_token> (uden “”)
+Body:
+{
+  "assessment": {
+    "title": "Original Arne Jacobsen 8’er stol",
+    "assessmentPrice": 3200.00,
+    "expertId": "a3db90d1-2f2a-49cf-aeee-4e1d7c56d3c1",
+    "valuationRequestId": "d25fc370-b59d-4e00-8bd5-2e705203f5b9",
+    "picture": "https://example.com/stol.jpg",
+    "category": "Designstol"
+  },
+  "conditionReport": {
+    "title": "Tilstandsrapport for Arne Jacobsen 7’er stol",
+    "summary": "Stolen er i god stand med få brugsspor.",
+    "materialCondition": "Lakken er intakt, mindre ridser på benene.",
+    "functionality": "Stolen er stabil og fuldt funktionel.",
+    "componentRemarks": "Ingen manglende dele.",
+    "authenticityDetails": "Original AJ-stempel under sædet.",
+    "dimensions": "H: 80 cm, B: 50 cm, D: 52 cm",
+    "reportDate": "2025-05-25T07:00:00Z",
+    "assessedBy": "Møbelekspert Jens Holm",
+    "pdfUrl": "https://example.com/tilstandsrapport-aj-stol.pdf"
+  }
+}
+
+
+Effekten sendes til StorageService via RabbitMQ.
+
+
+3.3 Opdater effektstatus på effekt i StorageService
+Endpoint: PUT /api/storage/updatestatus/{effectId}
+Path-param: effectId (fra StorageService)
+
+
+
+Status på effekt opdateres til “InStorage”
+---
+
+
+4. Auktionsflow (Admin Role)
+
+
+4.1 Importer effekter fra storage
+Endpoint: POST /api/auction/import-from-storage
+Body: (Tom)
+Dette opretter inaktive auktioner for effekter med status "InStorage".
+
+
+4.2 Opret et katalog
+Endpoint: POST /api/catalog/create
+Body:
+{
+  "Name": "Forårsauktion 2026",
+  "StartDate": "2025-05-23T10:00:00Z",
+  "EndDate": "2025-05-30T18:00:00Z",
+  "Status": "Active"
+}
+
+
+
+
+4.3 Tilknyt auktion til katalog og gør den aktiv
+Endpoint: POST /api/auction/{auctionId}/assign-to-catalog?catalogId={catalogId}&minPrice=0
+* Udskift auctionId og catalogId med relevante GUIDs.
+* Sæt minimumspris på auktion ved “minPrice”
+
+
+Noter:
+* Den aktive auktion skulle være sendt til rabbitmq hvor bidservice lytter på
+* Bidservice henter denne aktive auktion og gemmer den i cache.
+---
+5. Budgivning (User Role) 
+5.1 Læg et bud
+Endpoint: POST /api/bid/placebid
+Body:
+{
+  "auctionId": "",
+  "userId": "9f379cd3-b05d-4b14-8975-58e1f826bc32",
+  "amount": 0
+}
+
+
+Bud sendes via RabbitMQ og opdaterer auktionen i AuctionService.
+
+
+---
+
+
+6. Afslut auktion/katalog (Admin Role)
+Når en katalogs slutdato nås, markeres den som "Closed". Auktionerne opdateres og sendes til BidService. StorageService modtager derefter opdateringer om effektstatus ("Sold"/"NotSold").
+
+
+Endpoint: POST /api/catalog/{catalogId}/end
+Udskift catalogId med relevante GUID.
+
+
+
+
+Noter:
+* Forvent 204 “No content”. Intet log returneres

@@ -1,7 +1,7 @@
 **Hej**
 
 **Velkommen til eksamensprojektet lavet af FruityFives.**
-Brugerguiden kan findes i dette repository som Brugerguide.txt
+Brugerguiden kan findes i dette repository som 'Brugervejledning til auctionssystem.txt'
 
 EPDockerCompose, er den store docker-compose fil der kører alle microservices herunder:
 
